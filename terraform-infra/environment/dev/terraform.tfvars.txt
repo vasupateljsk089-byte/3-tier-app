@@ -1,0 +1,16 @@
+# Example values for development environment
+# Copy this file to terraform.tfvars and adjust values
+
+region      = "us-east-1"
+environment = "dev"
+project     = "item-tracker"
+
+# Network Configuration
+vpc_cidr             = "10.0.0.0/16"
+availability_zones   = ["us-east-1a", "us-east-1b"]
+public_subnet_cidrs  = ["10.0.1.0/24", "10.0.2.0/24"]
+frontend_subnet_cidrs = ["10.0.11.0/24", "10.0.12.0/24"]
+backend_subnet_cidrs  = ["10.0.21.0/24", "10.0.22.0/24"]
+database_subnet_cidrs = ["10.0.31.0/24", "10.0.32.0/24"]
+single_nat_gateway   = true  # false for high availability (costs more)
+

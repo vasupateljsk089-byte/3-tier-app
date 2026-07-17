@@ -1,0 +1,10 @@
+# Terraform
+terraform-infra/environment/dev/.terraform/
+terraform-infra/environment/dev/*.tfstate
+terraform-infra/environment/dev/*.tfstate.*
+terraform-infra/environment/dev/.terraform.lock.hcl
+terraform-infra/environment/dev/crash.log
+terraform-infra/environment/dev/*.tfplan
+terraform-infra/environment/dev/terraform.tfvars
+terraform-infra/environment/dev/*.auto.tfvars
+terraform-infra/environment/dev/.terraform.tfstate.lock.info

@@ -23,3 +23,15 @@ module "security_groups" {
   tags         = var.tags
 }
 
+module "iam" {
+  source = "../../modules/iam"
+
+  environment  = var.environment
+  project_name = var.project_name
+}
+
+data "aws_acm_certificate" "app" {
+  domain      = "app.vasubhalani.in"
+  statuses    = ["ISSUED"]
+  most_recent = true
+}

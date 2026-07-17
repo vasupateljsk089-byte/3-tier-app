@@ -139,3 +139,63 @@ module "sns" {
   email        = "email@gmail.com"
 }
 
+module "frontend_asg" {
+  source = "../../modules/frontend-asg"
+
+  environment          = var.environment
+  project_name        = var.project_name
+  region               = var.aws_region
+  instance_type        = var.frontend_instance_type
+  # key_name             = var.ssh_key_name
+  iam_instance_profile = module.iam.ec2_instance_profile_name
+  security_group_id    = module.security_groups.frontend_sg_id
+  subnet_ids           = module.vpc.frontend_subnet_ids
+  target_group_arn     = module.alb.target_group_arn
+  min_size             = var.frontend_min_size
+  max_size             = var.frontend_max_size
+  desired_capacity     = var.frontend_desired_capacity
+
+  docker_image         = var.frontend_docker_image
+  dockerhub_username   = var.dockerhub_username
+  dockerhub_password   = var.dockerhub_password
+  # backend_internal_url = "http://${module.internal_alb.alb_dns_name}"
+
+  alarm_actions = [
+    module.sns.topic_arn
+  ]
+
+  tags = var.tags
+
+  depends_on = [module.rds, module.alb]
+}
+
+# Backend ASG Module
+module "backend_asg" {
+  source = "../../modules/backend-asg"
+
+  environment          = var.environment
+  project_name        = var.project_name
+  region               = var.aws_region
+  instance_type        = var.backend_instance_type
+  # key_name             = var.ssh_key_name
+  iam_instance_profile = module.iam.ec2_instance_profile_name
+  security_group_id    = module.security_groups.backend_sg_id
+  subnet_ids           = module.vpc.backend_subnet_ids
+  target_group_arns    = [aws_lb_target_group.backend.arn]
+  min_size             = var.backend_min_size
+  max_size             = var.backend_max_size
+  desired_capacity     = var.backend_desired_capacity
+
+  docker_image       = var.backend_docker_image
+  dockerhub_username = var.dockerhub_username
+  dockerhub_password = var.dockerhub_password
+  db_secret_arn      = module.secrets.db_secret_arn
+
+  alarm_actions = [
+    module.sns.topic_arn
+  ]
+
+  tags = var.tags
+
+  depends_on = [module.rds, module.secrets]
+}

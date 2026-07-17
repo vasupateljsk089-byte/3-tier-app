@@ -78,3 +78,64 @@ module "rds" {
 
   tags = var.tags
 }
+# target group for backend
+resource "aws_lb_target_group" "backend" {
+
+  name     = "${var.environment}-${var.project_name}-backend-tg"
+
+  port     = 4000
+  protocol = "HTTP"
+
+  vpc_id = module.vpc.vpc_id
+
+  health_check {
+
+    enabled = true
+    path = "/api/health"
+    port = "traffic-port"
+    protocol = "HTTP"
+    healthy_threshold = 2
+    unhealthy_threshold = 3
+    timeout = 5
+    interval = 30
+    matcher = "200-299"
+  }
+
+  deregistration_delay = 30
+   
+  tags = var.tags
+}
+
+# Public Application Load Balancer Module (Frontend) http => https
+module "alb" {
+  source = "../../modules/alb"
+
+  environment       = var.environment
+  project_name      = var.project_name
+
+  name_prefix       = "public-"
+  internal          = false
+
+  vpc_id            = module.vpc.vpc_id
+  subnet_ids        = module.vpc.public_subnet_ids
+  security_group_id = module.security_groups.external_alb_sg_id
+
+  enable_https_redirect = true
+  certificate_arn       = data.aws_acm_certificate.app.arn
+
+  target_group_port = 3000
+  health_check_path = "/"
+
+  backend_target_group_arn = aws_lb_target_group.backend.arn
+
+  tags = var.tags
+}
+
+module "sns" {
+  source = "../../modules/sns"
+
+  environment  = var.environment
+  project_name = var.project_name
+  email        = "email@gmail.com"
+}
+

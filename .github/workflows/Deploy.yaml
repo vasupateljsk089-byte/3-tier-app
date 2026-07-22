@@ -1,0 +1,28 @@
+name: Application CI/CD # workflow name
+
+on: 
+   workflow_dispatch:
+
+permissions:
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Cloning code
+        uses: actions/checkout@v7.0.0
+
+      - name: Check Codebase
+        run: ls
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v6.2.2
+        with:
+          audience: sts.amazonaws.com
+          aws-region: ap-south-1
+          role-to-assume: arn:aws:iam::794038225665:role/OCID-Github-Actions
+
+      - name: List S3 buckets
+        run: aws s3 ls

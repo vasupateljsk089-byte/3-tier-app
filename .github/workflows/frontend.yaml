@@ -70,3 +70,63 @@ jobs:
         run: |
           docker push ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:$IMAGE_TAG
           docker push ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:latest
+          
+  deploy:
+     name: Deploy Frontend
+     needs: build
+     runs-on: ubuntu-latest
+     steps:
+       - name: Configure AWS Credentials
+         uses: aws-actions/configure-aws-credentials@v4
+         with:
+           role-to-assume: ${{ secrets.ROLE_TO_ASSUME }}
+           aws-region: ${{ vars.AWS_REGION }}
+   
+       - name: Update SSM Parameter
+         run: |
+           aws ssm put-parameter \
+             --name "/${{ vars.ENVIRONMENT }}/${{ vars.PROJECT_NAME }}/frontend/image" \
+             --value "${{ env.DOCKER_IMAGE }}" \
+             --type String \
+             --overwrite
+   
+       - name: Start Instance Refresh
+         run: |
+           aws autoscaling start-instance-refresh \
+             --auto-scaling-group-name "${{ vars.FRONTEND_ASG_NAME }}" \
+             --preferences '{
+               "MinHealthyPercentage":100,
+               "InstanceWarmup":90
+             }'
+   
+       - name: Wait for Instance Refresh
+         run: |
+           REFRESH_ID=$(aws autoscaling describe-instance-refreshes \
+             --auto-scaling-group-name "${{ vars.FRONTEND_ASG_NAME }}" \
+             --query "InstanceRefreshes[0].InstanceRefreshId" \
+             --output text)
+   
+           echo "Refresh ID: $REFRESH_ID"
+   
+           while true
+           do
+             STATUS=$(aws autoscaling describe-instance-refreshes \
+               --auto-scaling-group-name "${{ vars.FRONTEND_ASG_NAME }}" \
+               --instance-refresh-ids $REFRESH_ID \
+               --query "InstanceRefreshes[0].Status" \
+               --output text)
+   
+             echo "Current Status: $STATUS"
+   
+             if [ "$STATUS" = "Successful" ]; then
+               echo "Deployment Successful"
+               exit 0
+             fi
+   
+             if [ "$STATUS" = "Failed" ] || [ "$STATUS" = "Cancelled" ]; then
+               echo "Deployment Failed"
+               exit 1
+             fi
+   
+             sleep 30
+           done

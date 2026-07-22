@@ -17,19 +17,13 @@ jobs:
 
       - name: Check Codebase
         run: ls
-
-      - name: Debug GitHub Context
-        run: |
-          echo "Repository: ${{ github.repository }}"
-          echo "Ref: ${{ github.ref }}"
-          echo "Actor: ${{ github.actor }}"
-
+        
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v6.2.2
         with:
           audience: sts.amazonaws.com
           aws-region: ap-south-1
-          role-to-assume: arn:aws:iam::794038225665:role/oidc-github-actions
+          role-to-assume: arn:aws:iam::794038225665:role/oidc-github
 
       - name: List S3 buckets
         run: aws s3 ls

@@ -25,7 +25,7 @@ jobs:
           echo "Actor: ${{ github.actor }}"
 
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v6.2.2
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           audience: sts.amazonaws.com
           aws-region: ap-south-1

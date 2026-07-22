@@ -18,6 +18,12 @@ jobs:
       - name: Check Codebase
         run: ls
 
+      - name: Debug GitHub Context
+        run: |
+          echo "Repository: ${{ github.repository }}"
+          echo "Ref: ${{ github.ref }}"
+          echo "Actor: ${{ github.actor }}"
+
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v6.2.2
         with:

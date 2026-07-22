@@ -85,7 +85,7 @@ jobs:
        - name: Update SSM Parameter
          run: |
            aws ssm put-parameter \
-             --name "/${{ vars.ENVIRONMENT }}/${{ vars.PROJECT_NAME }}/frontend/image" \
+             --name "/${{ vars.ENVIRONMENT }}/${{ vars.PROJECT_NAME }}/frontend/image_tag" \
              --value "${{ env.DOCKER_IMAGE }}" \
              --type String \
              --overwrite
